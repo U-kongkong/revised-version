@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Animal Crossing Interactive Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ------------------------------
+   Animal Crossing Color Palette
+------------------------------ */
+:root{
+  --bg:#dff7e3;
+  --panel:#fff9e6;
+  --border:#c9bca6;
+  --accent:#7cc37c;    /* 민트그린 */
+  --accent-dark:#5da15d;
+  --text:#444;
+  --leaf:#7cc37c;
+}
+
+/* 기본 설정 */
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  padding:0;
+  min-height:100vh;
+  background:var(--bg);
+  font-family:"Quicksand", sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+/* 외부 프레임 */
+.frame{
+  width:100%;
+  max-width:980px;
+  background:var(--panel);
+  border:4px solid var(--border);
+  border-radius:25px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  padding:26px;
+}
+
+/* 제목 */
+.title-area{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+.leaf-icon{
+  width:26px;height:26px;
+  background:var(--leaf);
+  mask:url('https://upload.wikimedia.org/wikipedia/commons/3/39/Animal_Crossing_Leaf.svg') center/contain no-repeat;
+}
+h1{
+  margin:0;
+  font-size:26px;
+  color:var(--accent-dark);
+}
+
+/* 화면 패널 */
+.panel{
+  background:#ffffff;
+  border:2px solid var(--border);
+  border-radius:22px;
+  padding:20px;
+  margin-top:12px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.1);
+}
+
+/* 비디오 */
+.video-wrap{
+  width:100%;
+  border-radius:18px;
+  overflow:hidden;
+  margin-top:12px;
+}
+video{
+  width:100%;
+  border-radius:18px;
+  background:#000;
+}
+
+/* 버튼 */
+.btn{
+  display:inline-block;
+  padding:12px 20px;
+  margin-top:14px;
+  border-radius:999px;
+  background:var(--accent);
+  color:#fff;
+  font-weight:700;
+  font-size:16px;
+  border:none;
+  cursor:pointer;
+  transition:0.15s;
+}
+.btn:hover{
+  background:var(--accent-dark);
+}
+.btn.secondary{
+  background:#fff;
+  color:var(--accent);
+  border:2px solid var(--accent);
+}
+
+/* 옵션 선택 버튼 */
+.option-btn{
+  width:100%;
+  border:2px solid var(--accent);
+  background:#ffffff;
+  padding:14px;
+  border-radius:16px;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:10px;
+  text-align:left;
+  transition:0.15s;
+}
+.option-btn:hover{
+  background:#e9f7ec;
+  transform:translateY(-2px);
+}
+
+/* Center */
+.center{
+  text-align:center;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+<div class="frame">
+  <div class="title-area">
+    <div class="leaf-icon"></div>
+    <h1>Intercultural Adventure</h1>
+  </div>
+
+  <div id="gameArea"></div>
+</div>
+
+<script>
+/* -------------------------
+   Video & Scene Data
+------------------------- */
+
+const scenes = [
+  {
+    id: "Scene1",
+    prompt: "Your first meeting begins. How do you react?",
+    options: [
+      { text:"Option A - Be fully agreeable", video:"media/S1_A.mp4" },
+      { text:"Option B - Offer two specific times", video:"media/S1_B.mp4" },
+      { text:"Option C - Say you're flexible", video:"media/S1_C.mp4" }
+    ]
+  },
+  {
+    id:"Scene2",
+    prompt:"Your partner suggests the topic “K-Food & BTS”. What do you say?",
+    options:[
+      {text:"Option A - Balanced opinion",video:"media/S2_A.mp4"},
+      {text:"Option B - Academic focus",video:"media/S2_B.mp4"},
+      {text:"Option C - Expand idea",video:"media/S2_C.mp4"}
+    ]
+  }
+  // 계속 필요하면 추가 가능
+];
+
+
+let currentScene = -1;
+
+/* -------------------------
+   UI Rendering Functions
+------------------------- */
+
+function showOpening(){
+  document.getElementById("gameArea").innerHTML = `
+    <div class="panel">
+      <p>The professor announces the final intercultural assignment. You are paired with a Korean student.</p>
+      <div class="video-wrap">
+        <video id="openVid" controls>
+          <source src="media/opening.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="center">
+        <button class="btn" onclick="startGame()">Start Game</button>
+      </div>
+    </div>
+  `;
+}
+
+function startGame(){
+  document.getElementById("gameArea").innerHTML = `
+    <div class="panel">
+      <p>Your story begins…</p>
+      <div class="video-wrap">
+        <video id="scenarioVid" autoplay controls>
+          <source src="media/scenario_opening.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="center">
+        <button class="btn" onclick="goToScene(0)">Next</button>
+      </div>
+    </div>
+  `;
+}
+
+function goToScene(index){
+  currentScene = index;
+
+  const sc = scenes[index];
+
+  let optionsHTML = "";
+  sc.options.forEach((op, i)=>{
+    optionsHTML += `<button class="option-btn" onclick="playReaction(${i})">${op.text}</button>`;
+  });
+
+  document.getElementById("gameArea").innerHTML = `
+    <div class="panel">
+      <p>${sc.prompt}</p>
+      <button class="btn secondary" onclick="showOptions()">Choose Your Reaction</button>
+      <div id="optionsArea"></div>
+    </div>
+  `;
+}
+
+function showOptions(){
+  const sc = scenes[currentScene];
+
+  let optionsHTML = "";
+  sc.options.forEach((op,i)=>{
+    optionsHTML += `<button class="option-btn" onclick="playReaction(${i})">${op.text}</button>`;
+  });
+
+  document.getElementById("optionsArea").innerHTML = optionsHTML;
+}
+
+function playReaction(optionIndex){
+  const sc = scenes[currentScene];
+  const chosen = sc.options[optionIndex];
+
+  document.getElementById("gameArea").innerHTML = `
+    <div class="panel">
+      <p>You selected: ${chosen.text}</p>
+      <div class="video-wrap">
+        <video id="reactVid" autoplay controls>
+          <source src="${chosen.video}" type="video/mp4">
+        </video>
+      </div>
+      <div class="center">
+        <button class="btn secondary" onclick="nextScene()">Next Scene</button>
+      </div>
+    </div>
+  `;
+}
+
+function nextScene(){
+  if(currentScene + 1 >= scenes.length){
+    showEnding();
+    return;
+  }
+  goToScene(currentScene + 1);
+}
+
+function showEnding(){
+  document.getElementById("gameArea").innerHTML = `
+    <div class="panel">
+      <p>Your project is finally complete!</p>
+      <div class="video-wrap">
+        <video autoplay controls>
+          <source src="media/ending.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="center">
+        <button class="btn" onclick="showOpening()">Restart</button>
+      </div>
+    </div>
+  `;
+}
+
+/* Game start */
+showOpening();
+</script>
+
+</body>
+</html>
